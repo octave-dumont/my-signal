@@ -11,7 +11,7 @@ const PHRASES = ["we're doing it", 'we are doing it']
 
 // iOS curls apostrophes and people expand contractions: normalize before matching.
 function normPhrase(s: string) {
-  return s.toLowerCase().replace(/[‘’]/g, "'").replace(/\s+/g, ' ').trim()
+  return s.toLowerCase().replace(/[‘’‛′´`ʼ]/g, "'").replace(/\s+/g, ' ').trim()
 }
 
 function fmt(ms: number) {
@@ -175,7 +175,7 @@ function ConfirmSheet(props: {
             <span className="label" style={{ justifyContent: 'center' }}>
               write &quot;{PHRASE}&quot; to go to sleep
             </span>
-            <input type="text" value={phrase} autoFocus onChange={(e) => setPhrase(e.target.value)} />
+            <input type="text" value={phrase} autoFocus autoCapitalize="none" autoCorrect="off" spellCheck={false} onChange={(e) => setPhrase(e.target.value)} />
           </>
         )}
         <div className="row">
