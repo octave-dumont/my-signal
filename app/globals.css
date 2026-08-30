@@ -21,7 +21,7 @@
   --g-green: #15803d;
   --g-yellow: #a16207;
   --g-orange: #c2410c;
-  --g-red: #dc2626;
+  --g-red: #d70015;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -47,7 +47,7 @@
     --g-green: #4ade80;
     --g-yellow: #facc15;
     --g-orange: #fb923c;
-    --g-red: #f87171;
+    --g-red: #ff453a;
   }
 }
 
@@ -86,6 +86,14 @@ main {
 
 .label svg {
   opacity: 0.75;
+}
+
+.display {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.08em;
+  font-size: 13px;
+  color: var(--ink-2);
 }
 
 .figure {
@@ -177,7 +185,7 @@ button:disabled {
   position: relative;
   display: flex;
   flex: 1;
-  background: linear-gradient(160deg, var(--fill-3), var(--fill-1));
+  background: var(--fill-2);
   border: 1px solid var(--hairline);
   border-radius: 20px;
   padding: 4px;

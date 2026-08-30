@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next'
-import { Cormorant_Garamond, Geist } from 'next/font/google'
+import { Cormorant_Garamond, Geist, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 
 const geist = Geist({ subsets: ['latin'] })
 const serif = Cormorant_Garamond({ subsets: ['latin'], weight: '500', style: 'italic', variable: '--font-serif' })
+const display = Space_Grotesk({ subsets: ['latin'], weight: '500', variable: '--font-display' })
 
 export const metadata: Metadata = {
   title: 'my-signal',
@@ -22,7 +23,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en">
-      <body className={`${geist.className} ${serif.variable}`}>{children}</body>
+      <body className={`${geist.className} ${serif.variable} ${display.variable}`}>{children}</body>
     </html>
   )
 }

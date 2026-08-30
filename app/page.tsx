@@ -2,19 +2,11 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
-import { Bell, BellRing, Check, ChevronRight, History, Moon, Sun, Waves } from 'lucide-react'
+import { AudioWaveform, Bell, BellRing, Check, ChevronRight, History, Moon, Sun, Waves } from 'lucide-react'
 import { dayKey, fold, gradeOf, nextState, TARGET, type Day, type State, type TapType } from '@/lib/day'
 import type { Current } from '@/lib/store'
 
 const PHRASE = "we're doing it"
-
-function WaveGlyph({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
-      <path d="M4 16 H10 V8 H20" />
-    </svg>
-  )
-}
 
 function fmt(ms: number) {
   const m = Math.floor(ms / 60000)
@@ -57,10 +49,7 @@ function RatioCard({ totals }: { totals: { signalMs: number; awakeMs: number; ra
   const grade = { color: `var(--g-${gradeOf(pct)})` }
   return (
     <div className="card">
-      <span className="label">
-        <WaveGlyph />
-        Signal-to-noise
-      </span>
+      <span className="display">Signal-to-noise</span>
       <span className="figure" style={grade}>
         {pct}%
       </span>
@@ -79,7 +68,7 @@ function StateControl(props: { state: 'signal' | 'noise'; signalMs: number; nois
       <div className="pane" data-at={state === 'signal' ? '0' : '1'} />
       <button role="radio" aria-checked={state === 'signal'} data-on={state === 'signal'} onClick={state === 'noise' ? onAsk : undefined}>
         <span className="row">
-          <WaveGlyph size={15} />
+          <AudioWaveform size={15} />
           Signal
         </span>
         <span className="sub">{fmt(props.signalMs)}</span>
@@ -214,7 +203,7 @@ function Confirm(props: {
   return (
     <ConfirmSheet
       word={toSignal ? 'Signal' : 'Noise'}
-      icon={toSignal ? <WaveGlyph size={17} /> : <Waves size={17} />}
+      icon={toSignal ? <AudioWaveform size={17} /> : <Waves size={17} />}
       {...props}
     />
   )
