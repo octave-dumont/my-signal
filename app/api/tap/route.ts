@@ -1,5 +1,5 @@
 import { dayKey, nextState, type TapType } from '@/lib/day'
-import { getCurrent, getDay, putCurrent, putDay } from '@/lib/store'
+import { getCurrent, getDay, putCurrent, putDay, redis } from '@/lib/store'
 
 export async function POST(request: Request) {
   let type: TapType
@@ -22,5 +22,6 @@ export async function POST(request: Request) {
   day.events.push({ t: now, type })
   await putDay(day)
   await putCurrent({ dayKey: key, state, lastTap: now, nagged: 0 })
+  if (type === 'sleep') await redis.del('session')
   return Response.json({ state, day })
 }

@@ -7,6 +7,12 @@ import { dayKey, fold, gradeOf, nextState, TARGET, type Day, type State, type Ta
 import type { Current } from '@/lib/store'
 
 const PHRASE = "we're doing it"
+const PHRASES = ["we're doing it", 'we are doing it']
+
+// iOS curls apostrophes and people expand contractions: normalize before matching.
+function normPhrase(s: string) {
+  return s.toLowerCase().replace(/[‘’]/g, "'").replace(/\s+/g, ' ').trim()
+}
 
 function fmt(ms: number) {
   const m = Math.floor(ms / 60000)
@@ -138,7 +144,7 @@ function ConfirmSheet(props: {
 }) {
   const [phrase, setPhrase] = useState('')
   const [drafts, setDrafts] = useState(['', '', ''])
-  const blocked = (props.typed && phrase.trim().toLowerCase() !== PHRASE) || (props.tasks && drafts.some((d) => !d.trim()))
+  const blocked = (props.typed && !PHRASES.includes(normPhrase(phrase))) || (props.tasks && drafts.some((d) => !d.trim()))
   return (
     <div className="overlay" onClick={props.onCancel}>
       <form
@@ -314,6 +320,14 @@ function useDay() {
       )
     }
     await post('/api/tap', { type })
+    if (type === 'sleep') {
+      try {
+        sessionStorage.removeItem('ms_state')
+        sessionStorage.removeItem('ms_history')
+      } catch {}
+      window.location.replace('/login')
+      return
+    }
     if (drafted) await post('/api/tasks', { tasks: drafted })
     await refresh()
   }
