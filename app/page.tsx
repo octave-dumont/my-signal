@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { AudioWaveform, Bell, BellRing, Check, ChevronRight, History, Moon, Sun, Waves } from 'lucide-react'
 import { dayKey, fold, gradeOf, nextState, TARGET, type Day, type State, type TapType } from '@/lib/day'
 import type { Current } from '@/lib/store'
@@ -209,10 +209,12 @@ function Confirm(props: {
   )
 }
 
+const useBeforePaint = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
 function LoginQuote() {
   const [quote, setQuote] = useState<string | null>(null)
   const [gone, setGone] = useState(false)
-  useEffect(() => {
+  useBeforePaint(() => {
     let q: string | null = null
     try {
       q = sessionStorage.getItem('ms_quote')
