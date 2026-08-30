@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { CalendarOff, ChevronLeft, Flame, ListChecks } from 'lucide-react'
-import { TARGET } from '@/lib/day'
+import { gradeOf, TARGET } from '@/lib/day'
 
 type Summary = {
   date: string
@@ -31,21 +31,22 @@ function streak(days: Summary[]) {
 }
 
 function label(date: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  return new Date(`${date}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
 function DayRow({ d }: { d: Summary }) {
   const pct = Math.round(d.ratio * 100)
+  const grade = { color: `var(--g-${gradeOf(pct)})` }
   return (
     <div className="row" style={{ minHeight: 36 }}>
       <span className="label" style={{ width: 56 }}>
         {label(d.date)}
       </span>
-      <div className="track" style={{ flex: 1 }}>
+      <div className="track" style={{ flex: 1, ...grade }}>
         <div className="fill" style={{ width: `${Math.min(pct, 100)}%` }} />
         <div className="mark" style={{ left: `${TARGET}%` }} />
       </div>
-      <span className="tabular" style={{ width: 44, textAlign: 'right' }}>
+      <span className="tabular" style={{ width: 44, textAlign: 'right', ...grade }}>
         {pct}%
       </span>
       <span className="label tabular" style={{ width: 30, justifyContent: 'flex-end' }}>
@@ -59,17 +60,21 @@ function Stats({ days }: { days: Summary[] }) {
   return (
     <div className="row">
       <div className="card" style={{ flex: 1 }}>
-        <span className="label">7 jours</span>
-        <span className="stat">{avg(days, 7)}%</span>
+        <span className="label">7 days</span>
+        <span className="stat" style={{ color: `var(--g-${gradeOf(avg(days, 7))})` }}>
+          {avg(days, 7)}%
+        </span>
       </div>
       <div className="card" style={{ flex: 1 }}>
-        <span className="label">30 jours</span>
-        <span className="stat">{avg(days, 30)}%</span>
+        <span className="label">30 days</span>
+        <span className="stat" style={{ color: `var(--g-${gradeOf(avg(days, 30))})` }}>
+          {avg(days, 30)}%
+        </span>
       </div>
       <div className="card" style={{ flex: 1 }}>
         <span className="label">
           <Flame size={14} />
-          Série
+          Streak
         </span>
         <span className="stat">{streak(days)}</span>
       </div>
@@ -90,7 +95,7 @@ export default function HistoryPage() {
   return (
     <main>
       <div className="row">
-        <Link href="/" className="btn ghost" aria-label="Aujourd'hui">
+        <Link href="/" className="btn ghost" aria-label="Today">
           <ChevronLeft size={17} />
         </Link>
       </div>
@@ -101,7 +106,7 @@ export default function HistoryPage() {
         <div className="card row" style={{ justifyContent: 'center', minHeight: 120 }}>
           <span className="label">
             <CalendarOff size={14} />
-            Aucun jour
+            No days yet
           </span>
         </div>
       )}
@@ -111,10 +116,10 @@ export default function HistoryPage() {
           <Stats days={days} />
           <div className="card">
             <div className="row spread">
-              <span className="label">Part signal par jour</span>
+              <span className="label">Signal share per day</span>
               <span className="label">
                 <ListChecks size={14} />
-                Tâches
+                Tasks
               </span>
             </div>
             {[...days].reverse().map((d) => (

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { Bell, BellRing, Check, ChevronRight, History, Moon, Sun, Waves } from 'lucide-react'
-import { fold, TARGET, type Day, type State, type TapType } from '@/lib/day'
+import { dayKey, fold, gradeOf, nextState, TARGET, type Day, type State, type TapType } from '@/lib/day'
 import type { Current } from '@/lib/store'
 
 const PHRASE = "we're doing it"
@@ -33,15 +33,18 @@ async function post(url: string, body: unknown) {
 function Header({ subscribed, onPush }: { subscribed: boolean; onPush: () => void }) {
   return (
     <div className="row spread">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.svg" alt="my-signal" width={30} height={30} />
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcSet="/logo-dark.png" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="my-signal" width={36} height={36} />
+      </picture>
       <div className="row">
         <button className="ghost" aria-label="Notifications" onClick={onPush} disabled={subscribed}>
           {subscribed ? <BellRing size={17} /> : <Bell size={17} />}
         </button>
-        <Link href="/history" className="btn ghost" aria-label="Historique">
+        <Link href="/history" className="btn ghost" aria-label="History">
           <History size={17} />
-          Historique
+          History
           <ChevronRight size={13} />
         </Link>
       </div>
@@ -51,47 +54,38 @@ function Header({ subscribed, onPush }: { subscribed: boolean; onPush: () => voi
 
 function RatioCard({ totals }: { totals: { signalMs: number; awakeMs: number; ratio: number } }) {
   const pct = Math.round(totals.ratio * 100)
+  const grade = { color: `var(--g-${gradeOf(pct)})` }
   return (
     <div className="card">
-      <div className="row spread">
-        <span className="figure">{pct}%</span>
-        <span className="label tabular">{TARGET} à battre</span>
-      </div>
-      <div className="track">
+      <span className="figure" style={grade}>
+        {pct}%
+      </span>
+      <div className="track" style={grade}>
         <div className="fill" style={{ width: `${Math.min(pct, 100)}%` }} />
         <div className="mark" style={{ left: `${TARGET}%` }} />
-      </div>
-      <div className="row spread">
-        <span className="row">
-          <span className="label">
-            <WaveGlyph />
-            Signal
-          </span>
-          <span className="tabular">{fmt(totals.signalMs)}</span>
-        </span>
-        <span className="row">
-          <span className="label">
-            <Sun size={14} />
-            Éveil
-          </span>
-          <span className="tabular">{fmt(totals.awakeMs)}</span>
-        </span>
       </div>
     </div>
   )
 }
 
-function StateControl({ state, inState, onAsk }: { state: 'signal' | 'noise'; inState: number; onAsk: () => void }) {
+function StateControl(props: { state: 'signal' | 'noise'; signalMs: number; noiseMs: number; onAsk: () => void }) {
+  const { state, onAsk } = props
   return (
-    <div className="seg" role="radiogroup" aria-label="État">
+    <div className="seg" role="radiogroup" aria-label="State">
       <div className="pane" data-at={state === 'signal' ? '0' : '1'} />
       <button role="radio" aria-checked={state === 'signal'} data-on={state === 'signal'} onClick={state === 'noise' ? onAsk : undefined}>
-        Signal
-        {state === 'signal' && <span className="sub">{fmt(inState)}</span>}
+        <span className="row">
+          <WaveGlyph size={15} />
+          Signal
+        </span>
+        <span className="sub">{fmt(props.signalMs)}</span>
       </button>
       <button role="radio" aria-checked={state === 'noise'} data-on={state === 'noise'} onClick={state === 'signal' ? onAsk : undefined}>
-        Bruit
-        {state === 'noise' && <span className="sub">{fmt(inState)}</span>}
+        <span className="row">
+          <Waves size={15} />
+          Noise
+        </span>
+        <span className="sub">{fmt(props.noiseMs)}</span>
       </button>
     </div>
   )
@@ -112,13 +106,13 @@ function TaskForm({ onSave }: { onSave: (tasks: Day['tasks']) => void }) {
           key={i}
           type="text"
           value={d}
-          placeholder={`Tâche ${i + 1}`}
+          placeholder={`Task ${i + 1}`}
           onChange={(e) => setDrafts(drafts.map((x, j) => (j === i ? e.target.value : x)))}
         />
       ))}
       <button type="submit" disabled={drafts.some((d) => !d.trim())}>
         <Check size={15} />
-        Valider
+        Confirm
       </button>
     </form>
   )
@@ -173,7 +167,7 @@ function ConfirmSheet(props: {
               type="text"
               value={d}
               autoFocus={i === 0}
-              placeholder={`Tâche ${i + 1}`}
+              placeholder={`Task ${i + 1}`}
               onChange={(e) => setDrafts(drafts.map((x, j) => (j === i ? e.target.value : x)))}
             />
           ))}
@@ -182,11 +176,11 @@ function ConfirmSheet(props: {
         )}
         <div className="row">
           <button type="button" className="ghost" style={{ flex: 1 }} onClick={props.onCancel}>
-            Annuler
+            Cancel
           </button>
           <button type="submit" style={{ flex: 1 }} autoFocus={!props.typed && !props.tasks} disabled={blocked}>
             <Check size={15} />
-            Valider
+            Confirm
           </button>
         </div>
       </form>
@@ -202,25 +196,57 @@ function Confirm(props: {
   onConfirm: (tasks?: string[]) => void
 }) {
   if (props.confirming === 'wake') {
-    return <ConfirmSheet word="Réveil" icon={<Sun size={17} />} tasks={props.wakeNeedsTasks} {...props} />
+    return <ConfirmSheet word="Wake up" icon={<Sun size={17} />} tasks={props.wakeNeedsTasks} {...props} />
   }
   if (props.confirming === 'sleep') {
-    return <ConfirmSheet word="Dormir" icon={<Moon size={17} />} typed {...props} />
+    return <ConfirmSheet word="Sleep" icon={<Moon size={17} />} typed {...props} />
   }
   const toSignal = props.state === 'noise'
   return (
     <ConfirmSheet
-      word={toSignal ? 'Signal' : 'Bruit'}
+      word={toSignal ? 'Signal' : 'Noise'}
       icon={toSignal ? <WaveGlyph size={17} /> : <Waves size={17} />}
       {...props}
     />
   )
 }
 
-export default function Today() {
+function LoginQuote() {
+  const [quote, setQuote] = useState<string | null>(null)
+  const [gone, setGone] = useState(false)
+  useEffect(() => {
+    let q: string | null = null
+    try {
+      q = sessionStorage.getItem('ms_quote')
+      if (q) sessionStorage.removeItem('ms_quote')
+    } catch {}
+    if (!q) return
+    setQuote(q)
+    const t1 = setTimeout(() => setGone(true), 3600)
+    const t2 = setTimeout(() => setQuote(null), 4200)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [])
+  if (!quote) return null
+  return (
+    /* H32 broken deliberately: the login ritual quote, server-held so the bundle never carries it */
+    <div className={gone ? 'quote gone' : 'quote'}>
+      <p style={{ maxWidth: '24ch' }}>
+        {quote.split(' ').map((w, i) => (
+          <span key={i} className="w" style={{ animationDelay: `${i * 70}ms` }}>
+            {w}&nbsp;
+          </span>
+        ))}
+      </p>
+    </div>
+  )
+}
+
+function useDay() {
   const [current, setCurrent] = useState<Current | null>(null)
   const [day, setDay] = useState<Day | null>(null)
-  const [confirming, setConfirming] = useState<TapType | null>(null)
   const [subscribed, setSubscribed] = useState(false)
   const [now, setNow] = useState(() => Date.now())
 
@@ -246,9 +272,20 @@ export default function Today() {
   }, [refresh])
 
   async function tap(type: TapType, tasks?: string[]) {
-    setConfirming(null)
+    const t = Date.now()
+    const ns = current ? nextState(current.state, type) : null
+    const drafted = tasks ? tasks.map((text) => ({ text, done: false })) : null
+    if (ns) {
+      setCurrent((c) => (c ? { ...c, state: ns, lastTap: t } : c))
+      setNow(t)
+      setDay((d) =>
+        d
+          ? { ...d, events: [...d.events, { t, type }], tasks: drafted ?? d.tasks }
+          : { date: dayKey(t), events: [{ t, type }], tasks: drafted ?? [] }
+      )
+    }
     await post('/api/tap', { type })
-    if (tasks) await post('/api/tasks', { tasks: tasks.map((text) => ({ text, done: false })) })
+    if (drafted) await post('/api/tasks', { tasks: drafted })
     await refresh()
   }
 
@@ -269,6 +306,13 @@ export default function Today() {
     setSubscribed(true)
   }
 
+  return { current, day, subscribed, now, tap, saveTasks, enablePush }
+}
+
+export default function Today() {
+  const { current, day, subscribed, now, tap, saveTasks, enablePush } = useDay()
+  const [confirming, setConfirming] = useState<TapType | null>(null)
+
   if (!current) {
     return (
       <main>
@@ -282,26 +326,28 @@ export default function Today() {
 
   return (
     <main>
+      <LoginQuote />
       <Header subscribed={subscribed} onPush={enablePush} />
       {totals && totals.awakeMs > 0 && <RatioCard totals={totals} />}
       {current.state === 'asleep' ? (
         <button className="big" onClick={() => setConfirming('wake')}>
           <Sun />
-          Réveil
+          Wake up
         </button>
       ) : (
         <StateControl
           state={current.state}
-          inState={current.lastTap > 0 ? now - current.lastTap : 0}
+          signalMs={totals?.signalMs ?? 0}
+          noiseMs={Math.max(0, (totals?.awakeMs ?? 0) - (totals?.signalMs ?? 0))}
           onAsk={() => setConfirming('toggle')}
         />
       )}
       {day && day.tasks.length === 3 && <TaskList day={day} onSave={saveTasks} />}
       {day && day.tasks.length === 0 && current.state !== 'asleep' && <TaskForm onSave={saveTasks} />}
       {!asleep && (
-        <button className="ghost" onClick={() => setConfirming('sleep')}>
+        <button className="ghost" style={{ marginTop: 'auto' }} onClick={() => setConfirming('sleep')}>
           <Moon size={15} />
-          Dormir
+          Sleep
         </button>
       )}
       {confirming && (
@@ -310,7 +356,10 @@ export default function Today() {
           state={current.state}
           wakeNeedsTasks={!day || day.tasks.length === 0}
           onCancel={() => setConfirming(null)}
-          onConfirm={(tasks) => tap(confirming, tasks)}
+          onConfirm={(tasks) => {
+            setConfirming(null)
+            tap(confirming, tasks)
+          }}
         />
       )}
     </main>

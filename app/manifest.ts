@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'my-signal',
     short_name: 'my-signal',
-    description: 'Part signal de la journée',
+    description: 'Signal share of the day',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

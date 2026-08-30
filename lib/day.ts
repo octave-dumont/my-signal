@@ -7,6 +7,16 @@ export type State = 'asleep' | 'signal' | 'noise'
 export const TARGET = 80
 export const TZ = 'Europe/Paris'
 
+// Grade thresholds: 95 purple, 85 blue, 75 green, 65 yellow, 55 orange, below red.
+export function gradeOf(pct: number): string {
+  if (pct >= 95) return 'purple'
+  if (pct >= 85) return 'blue'
+  if (pct >= 75) return 'green'
+  if (pct >= 65) return 'yellow'
+  if (pct >= 55) return 'orange'
+  return 'red'
+}
+
 // A day is owned by its wake date in Paris time.
 export function dayKey(t: number): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date(t))
@@ -20,8 +30,9 @@ export function fold(events: DayEvent[], now: number) {
   let awakeMs = 0
   const close = (until: number) => {
     if (state === 'asleep') return
-    awakeMs += until - since
-    if (state === 'signal') signalMs += until - since
+    const span = Math.max(0, until - since)
+    awakeMs += span
+    if (state === 'signal') signalMs += span
   }
   for (const e of events) {
     if (e.type === 'wake' && state === 'asleep') {

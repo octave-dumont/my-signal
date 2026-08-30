@@ -10,6 +10,12 @@
   --fill-3: rgba(23, 23, 26, 0.11);
   --card-shadow: 0 1px 3px rgba(23, 23, 26, 0.06);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --g-purple: #6d5be0;
+  --g-blue: #2563eb;
+  --g-green: #15803d;
+  --g-yellow: #a16207;
+  --g-orange: #c2410c;
+  --g-red: #dc2626;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,6 +30,12 @@
     --fill-2: rgba(244, 244, 245, 0.08);
     --fill-3: rgba(244, 244, 245, 0.12);
     --card-shadow: none;
+    --g-purple: #9b8bf0;
+    --g-blue: #60a5fa;
+    --g-green: #4ade80;
+    --g-yellow: #facc15;
+    --g-orange: #fb923c;
+    --g-red: #f87171;
   }
 }
 
@@ -34,6 +46,7 @@
 html,
 body {
   margin: 0;
+  height: 100%;
   background: var(--ground);
   color: var(--ink);
   font-size: 16px;
@@ -43,11 +56,12 @@ body {
 main {
   max-width: 430px;
   margin: 0 auto;
+  min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+  padding: calc(10px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
 }
 
 .label {
@@ -144,11 +158,12 @@ button:disabled {
 .seg {
   position: relative;
   display: flex;
+  flex: 1;
   background: var(--fill-2);
   border: 1px solid var(--hairline);
   border-radius: 13px;
   padding: 4px;
-  min-height: 72px;
+  min-height: 96px;
 }
 
 .seg .pane {
@@ -241,7 +256,7 @@ input[type='password'] {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: 3px;
-  background: var(--ink);
+  background: currentColor;
   transition: width 150ms var(--ease);
 }
 
@@ -324,6 +339,27 @@ input[type='password'] {
   pointer-events: none;
 }
 
+.quote p {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 30px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.quote .w {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.7em);
+  animation: wordrise 650ms var(--ease) forwards;
+}
+
+@keyframes wordrise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes fadein {
   from {
     opacity: 0;
@@ -334,5 +370,10 @@ input[type='password'] {
   * {
     transition: none !important;
     animation: none !important;
+  }
+
+  .quote .w {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

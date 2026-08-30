@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#ffffff"/>
-  <!-- the Galahad bracket mark, the signal square wave as its crossbar (Herald treatment) -->
-  <g stroke="#17171a" fill="none" stroke-linejoin="miter">
-    <polyline points="26,6 8,32 26,58" stroke-width="10"/>
-    <polyline points="38,6 56,32 38,58" stroke-width="10"/>
-    <path d="M21 40 H29 V24 H43" stroke-width="6"/>
-  </g>
-</svg>
