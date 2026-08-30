@@ -17,7 +17,16 @@ export async function POST(request: Request) {
     return Response.json({ ok: true, nagged: false, error: 'no_subscription' })
   }
   webpush.setVapidDetails(process.env.VAPID_SUBJECT!, process.env.VAPID_PUBLIC_KEY!, process.env.VAPID_PRIVATE_KEY!)
-  await webpush.sendNotification(sub, JSON.stringify({ title: 'my-signal', body: `Still in ${current.state}?` }))
+  try {
+    await webpush.sendNotification(sub, JSON.stringify({ title: 'my-signal', body: `Still in ${current.state}?` }))
+  } catch (e) {
+    const code = (e as { statusCode?: number }).statusCode
+    if (code === 404 || code === 410) {
+      await redis.del('push:sub')
+      return Response.json({ ok: true, nagged: false, error: 'subscription_expired' })
+    }
+    return Response.json({ error: 'push_failed' }, { status: 502 })
+  }
   await putCurrent({ ...current, nagged: now })
   return Response.json({ ok: true, nagged: true })
 }

@@ -2,7 +2,12 @@ import { dayKey, nextState, type TapType } from '@/lib/day'
 import { getCurrent, getDay, putCurrent, putDay } from '@/lib/store'
 
 export async function POST(request: Request) {
-  const { type } = (await request.json()) as { type: TapType }
+  let type: TapType
+  try {
+    ;({ type } = (await request.json()) as { type: TapType })
+  } catch {
+    return Response.json({ error: 'bad_json' }, { status: 400 })
+  }
   if (!['wake', 'toggle', 'sleep'].includes(type)) {
     return Response.json({ error: 'unknown_tap' }, { status: 400 })
   }

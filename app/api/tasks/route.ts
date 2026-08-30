@@ -2,7 +2,12 @@ import type { Task } from '@/lib/day'
 import { getCurrent, getDay, putDay } from '@/lib/store'
 
 export async function POST(request: Request) {
-  const { tasks } = (await request.json()) as { tasks: Task[] }
+  let tasks: Task[]
+  try {
+    ;({ tasks } = (await request.json()) as { tasks: Task[] })
+  } catch {
+    return Response.json({ error: 'bad_json' }, { status: 400 })
+  }
   if (!Array.isArray(tasks) || tasks.length !== 3 || tasks.some((t) => typeof t.text !== 'string' || !t.text.trim() || typeof t.done !== 'boolean')) {
     return Response.json({ error: 'three_tasks_exactly' }, { status: 400 })
   }
