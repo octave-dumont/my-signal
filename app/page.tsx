@@ -211,6 +211,20 @@ function Confirm(props: {
 
 const useBeforePaint = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
+function TodaySkeleton() {
+  return (
+    <>
+      <div className="row spread" style={{ minHeight: 44 }}>
+        <div className="skel" style={{ width: 36, height: 36, borderRadius: 10 }} />
+        <div className="skel" style={{ width: 120, height: 32, borderRadius: 999 }} />
+      </div>
+      <div className="card skel" style={{ height: 150 }} />
+      <div className="skel" style={{ flex: 1, borderRadius: 20 }} />
+      <div className="card skel" style={{ height: 170 }} />
+    </>
+  )
+}
+
 function LoginQuote() {
   const [quote, setQuote] = useState<string | null>(null)
   const [gone, setGone] = useState(false)
@@ -331,13 +345,8 @@ export default function Today() {
   if (!current) {
     return (
       <main>
-        <div className="row spread" style={{ minHeight: 44 }}>
-          <div className="skel" style={{ width: 36, height: 36, borderRadius: 10 }} />
-          <div className="skel" style={{ width: 120, height: 32, borderRadius: 999 }} />
-        </div>
-        <div className="card skel" style={{ height: 150 }} />
-        <div className="skel" style={{ flex: 1, borderRadius: 20 }} />
-        <div className="card skel" style={{ height: 170 }} />
+        <LoginQuote />
+        <TodaySkeleton />
       </main>
     )
   }

@@ -4,8 +4,11 @@ import { redis } from '@/lib/store'
 
 export async function POST(request: Request) {
   const ip = (request.headers.get('x-forwarded-for') ?? 'unknown').split(',')[0].trim()
-  const tries = await redis.incr(`login:${ip}`)
-  if (tries === 1) await redis.expire(`login:${ip}`, 60)
+  const [tries] = await redis
+    .pipeline()
+    .incr(`login:${ip}`)
+    .expire(`login:${ip}`, 60, 'NX')
+    .exec<[number, number]>()
   if (tries > 5) {
     return Response.json({ error: 'too_many_tries' }, { status: 429 })
   }

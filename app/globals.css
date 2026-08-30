@@ -381,6 +381,33 @@ input.gate-input:focus-visible {
   border-bottom-color: var(--ink-2);
 }
 
+.await {
+  width: 18ch;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--fill-2);
+  overflow: hidden;
+  position: relative;
+}
+
+.await::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -30%;
+  width: 30%;
+  border-radius: 1px;
+  background: var(--ink-2);
+  animation: travel 900ms var(--ease) infinite;
+}
+
+@keyframes travel {
+  to {
+    left: 100%;
+  }
+}
+
 .overlay {
   position: fixed;
   inset: 0;

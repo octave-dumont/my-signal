@@ -1,21 +1,23 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export default function Login() {
-  const router = useRouter()
   const [password, setPassword] = useState('')
   const [refused, setRefused] = useState(false)
+  const [pending, setPending] = useState(false)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
+    if (pending) return
+    setPending(true)
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ password }),
     })
     if (!res.ok) {
+      setPending(false)
       setRefused(true)
       return
     }
@@ -23,7 +25,7 @@ export default function Login() {
     try {
       if (data.quote) sessionStorage.setItem('ms_quote', data.quote)
     } catch {}
-    router.replace('/')
+    window.location.replace('/')
   }
 
   return (
@@ -35,6 +37,7 @@ export default function Login() {
           type="text"
           value={password}
           autoFocus
+          disabled={pending}
           autoCapitalize="none"
           autoCorrect="off"
           autoComplete="off"
@@ -46,7 +49,8 @@ export default function Login() {
             setRefused(false)
           }}
         />
-        {refused && <span className="label">Wrong password</span>}
+        {pending && <div className="await" />}
+        {!pending && refused && <span className="label">Wrong password</span>}
       </form>
     </main>
   )
