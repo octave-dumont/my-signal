@@ -57,9 +57,12 @@ function RatioCard({ totals }: { totals: { signalMs: number; awakeMs: number; ra
   const grade = { color: `var(--g-${gradeOf(pct)})` }
   return (
     <div className="card">
-      <span className="figure" style={grade}>
-        {pct}%
-      </span>
+      <div className="row spread">
+        <span className="figure" style={grade}>
+          {pct}%
+        </span>
+        <span className="label">signal-to-noise</span>
+      </div>
       <div className="track" style={grade}>
         <div className="fill" style={{ width: `${Math.min(pct, 100)}%` }} />
         <div className="mark" style={{ left: `${TARGET}%` }} />
