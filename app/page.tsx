@@ -175,7 +175,12 @@ function ConfirmSheet(props: {
             />
           ))}
         {props.typed && (
-          <input type="text" value={phrase} autoFocus placeholder={PHRASE} onChange={(e) => setPhrase(e.target.value)} />
+          <>
+            <span className="label" style={{ justifyContent: 'center' }}>
+              write &quot;{PHRASE}&quot; to go to sleep
+            </span>
+            <input type="text" value={phrase} autoFocus onChange={(e) => setPhrase(e.target.value)} />
+          </>
         )}
         <div className="row">
           <button type="button" className="ghost" style={{ flex: 1 }} onClick={props.onCancel}>
