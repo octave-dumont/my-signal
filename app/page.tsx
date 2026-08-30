@@ -2,21 +2,23 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
-import { Bell, BellRing, ChevronRight, History, Moon, Sun, Waves, Zap } from 'lucide-react'
+import { Bell, BellRing, Check, ChevronRight, History, Moon, Sun, Waves } from 'lucide-react'
 import { fold, TARGET, type Day, type State, type TapType } from '@/lib/day'
 import type { Current } from '@/lib/store'
 
 const PHRASE = "we're doing it"
-const ICONS: Record<string, React.ReactNode> = {
-  Wake: <Sun size={18} />,
-  Sleep: <Moon size={18} />,
-  Signal: <Zap size={18} />,
-  Noise: <Waves size={18} />,
+
+function WaveGlyph({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+      <path d="M4 16 H10 V8 H20" />
+    </svg>
+  )
 }
 
 function fmt(ms: number) {
   const m = Math.floor(ms / 60000)
-  return m < 60 ? `${m}m` : `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}`
+  return m < 60 ? `${m} min` : `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}`
 }
 
 function b64ToBytes(s: string) {
@@ -32,35 +34,18 @@ function Header({ subscribed, onPush }: { subscribed: boolean; onPush: () => voi
   return (
     <div className="row spread">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.svg" alt="my-signal" width={28} height={28} />
+      <img src="/logo.svg" alt="my-signal" width={30} height={30} />
       <div className="row">
         <button className="ghost" aria-label="Notifications" onClick={onPush} disabled={subscribed}>
-          {subscribed ? <BellRing size={18} /> : <Bell size={18} />}
+          {subscribed ? <BellRing size={17} /> : <Bell size={17} />}
         </button>
-        <Link href="/history" className="btn ghost" aria-label="History">
-          <History size={18} />
-          <ChevronRight size={14} />
+        <Link href="/history" className="btn ghost" aria-label="Historique">
+          <History size={17} />
+          Historique
+          <ChevronRight size={13} />
         </Link>
       </div>
     </div>
-  )
-}
-
-function BigButton({ state, inState, onTap }: { state: State; inState: number; onTap: () => void }) {
-  if (state === 'asleep') {
-    return (
-      <button className="big" onClick={onTap}>
-        <Sun />
-        Wake
-      </button>
-    )
-  }
-  return (
-    <button className={state === 'signal' ? 'big signal' : 'big'} onClick={onTap}>
-      {state === 'signal' ? <Zap /> : <Waves />}
-      {state === 'signal' ? 'Signal' : 'Noise'}
-      <span className="label">{fmt(inState)}</span>
-    </button>
   )
 }
 
@@ -70,7 +55,7 @@ function RatioCard({ totals }: { totals: { signalMs: number; awakeMs: number; ra
     <div className="card">
       <div className="row spread">
         <span className="figure">{pct}%</span>
-        <span className="label">{TARGET} to beat</span>
+        <span className="label tabular">{TARGET} à battre</span>
       </div>
       <div className="track">
         <div className="fill" style={{ width: `${Math.min(pct, 100)}%` }} />
@@ -79,20 +64,63 @@ function RatioCard({ totals }: { totals: { signalMs: number; awakeMs: number; ra
       <div className="row spread">
         <span className="row">
           <span className="label">
-            <Zap size={14} />
-            signal
+            <WaveGlyph />
+            Signal
           </span>
-          {fmt(totals.signalMs)}
+          <span className="tabular">{fmt(totals.signalMs)}</span>
         </span>
         <span className="row">
           <span className="label">
             <Sun size={14} />
-            awake
+            Éveil
           </span>
-          {fmt(totals.awakeMs)}
+          <span className="tabular">{fmt(totals.awakeMs)}</span>
         </span>
       </div>
     </div>
+  )
+}
+
+function StateControl({ state, inState, onAsk }: { state: 'signal' | 'noise'; inState: number; onAsk: () => void }) {
+  return (
+    <div className="seg" role="radiogroup" aria-label="État">
+      <div className="pane" data-at={state === 'signal' ? '0' : '1'} />
+      <button role="radio" aria-checked={state === 'signal'} data-on={state === 'signal'} onClick={state === 'noise' ? onAsk : undefined}>
+        Signal
+        {state === 'signal' && <span className="sub">{fmt(inState)}</span>}
+      </button>
+      <button role="radio" aria-checked={state === 'noise'} data-on={state === 'noise'} onClick={state === 'signal' ? onAsk : undefined}>
+        Bruit
+        {state === 'noise' && <span className="sub">{fmt(inState)}</span>}
+      </button>
+    </div>
+  )
+}
+
+function TaskForm({ onSave }: { onSave: (tasks: Day['tasks']) => void }) {
+  const [drafts, setDrafts] = useState(['', '', ''])
+  return (
+    <form
+      className="card"
+      onSubmit={(e) => {
+        e.preventDefault()
+        onSave(drafts.map((text) => ({ text: text.trim(), done: false })))
+      }}
+    >
+      {drafts.map((d, i) => (
+        <input
+          key={i}
+          type="text"
+          value={d}
+          placeholder={`Tâche ${i + 1}`}
+          onChange={(e) => setDrafts(drafts.map((x, j) => (j === i ? e.target.value : x)))}
+        />
+      ))}
+      <button type="submit" disabled={drafts.some((d) => !d.trim())}>
+        <Check size={15} />
+        Valider
+      </button>
+    </form>
   )
 }
 
@@ -113,34 +141,17 @@ function TaskList({ day, onSave }: { day: Day; onSave: (tasks: Day['tasks']) => 
   )
 }
 
-function TaskForm({ onSave }: { onSave: (tasks: Day['tasks']) => void }) {
-  const [drafts, setDrafts] = useState(['', '', ''])
-  return (
-    <form
-      className="card"
-      onSubmit={(e) => {
-        e.preventDefault()
-        onSave(drafts.map((text) => ({ text, done: false })))
-      }}
-    >
-      {drafts.map((d, i) => (
-        <input
-          key={i}
-          type="text"
-          value={d}
-          placeholder={`${i + 1}`}
-          onChange={(e) => setDrafts(drafts.map((x, j) => (j === i ? e.target.value : x)))}
-        />
-      ))}
-      <button type="submit" disabled={drafts.some((d) => !d.trim())}>
-        Set
-      </button>
-    </form>
-  )
-}
-
-function ConfirmSheet(props: { word: string; typed: boolean; onCancel: () => void; onConfirm: () => void }) {
+function ConfirmSheet(props: {
+  word: string
+  icon: React.ReactNode
+  typed?: boolean
+  tasks?: boolean
+  onCancel: () => void
+  onConfirm: (tasks?: string[]) => void
+}) {
   const [phrase, setPhrase] = useState('')
+  const [drafts, setDrafts] = useState(['', '', ''])
+  const blocked = (props.typed && phrase.trim().toLowerCase() !== PHRASE) || (props.tasks && drafts.some((d) => !d.trim()))
   return (
     <div className="overlay" onClick={props.onCancel}>
       <form
@@ -148,31 +159,61 @@ function ConfirmSheet(props: { word: string; typed: boolean; onCancel: () => voi
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault()
-          props.onConfirm()
+          props.onConfirm(props.tasks ? drafts.map((d) => d.trim()) : undefined)
         }}
       >
-        <span className="row" style={{ justifyContent: 'center', gap: 8 }}>
-          {ICONS[props.word]}
-          {props.word}?
+        <span className="row" style={{ justifyContent: 'center', gap: 8, fontWeight: 500 }}>
+          {props.icon}
+          {props.word}
         </span>
+        {props.tasks &&
+          drafts.map((d, i) => (
+            <input
+              key={i}
+              type="text"
+              value={d}
+              autoFocus={i === 0}
+              placeholder={`Tâche ${i + 1}`}
+              onChange={(e) => setDrafts(drafts.map((x, j) => (j === i ? e.target.value : x)))}
+            />
+          ))}
         {props.typed && (
           <input type="text" value={phrase} autoFocus placeholder={PHRASE} onChange={(e) => setPhrase(e.target.value)} />
         )}
         <div className="row">
           <button type="button" className="ghost" style={{ flex: 1 }} onClick={props.onCancel}>
-            Cancel
+            Annuler
           </button>
-          <button
-            type="submit"
-            style={{ flex: 1 }}
-            autoFocus={!props.typed}
-            disabled={props.typed && phrase.trim().toLowerCase() !== PHRASE}
-          >
-            Confirm
+          <button type="submit" style={{ flex: 1 }} autoFocus={!props.typed && !props.tasks} disabled={blocked}>
+            <Check size={15} />
+            Valider
           </button>
         </div>
       </form>
     </div>
+  )
+}
+
+function Confirm(props: {
+  confirming: TapType
+  state: State
+  wakeNeedsTasks: boolean
+  onCancel: () => void
+  onConfirm: (tasks?: string[]) => void
+}) {
+  if (props.confirming === 'wake') {
+    return <ConfirmSheet word="Réveil" icon={<Sun size={17} />} tasks={props.wakeNeedsTasks} {...props} />
+  }
+  if (props.confirming === 'sleep') {
+    return <ConfirmSheet word="Dormir" icon={<Moon size={17} />} typed {...props} />
+  }
+  const toSignal = props.state === 'noise'
+  return (
+    <ConfirmSheet
+      word={toSignal ? 'Signal' : 'Bruit'}
+      icon={toSignal ? <WaveGlyph size={17} /> : <Waves size={17} />}
+      {...props}
+    />
   )
 }
 
@@ -204,9 +245,10 @@ export default function Today() {
     return () => clearInterval(t)
   }, [refresh])
 
-  async function tap(type: TapType) {
+  async function tap(type: TapType, tasks?: string[]) {
     setConfirming(null)
     await post('/api/tap', { type })
+    if (tasks) await post('/api/tasks', { tasks: tasks.map((text) => ({ text, done: false })) })
     await refresh()
   }
 
@@ -237,32 +279,38 @@ export default function Today() {
 
   const asleep = current.state === 'asleep'
   const totals = day ? fold(day.events, now) : null
-  const confirmWord =
-    confirming === 'wake' ? 'Wake' : confirming === 'sleep' ? 'Sleep' : current.state === 'signal' ? 'Noise' : 'Signal'
 
   return (
     <main>
       <Header subscribed={subscribed} onPush={enablePush} />
-      <BigButton
-        state={current.state}
-        inState={current.lastTap > 0 ? now - current.lastTap : 0}
-        onTap={() => setConfirming(asleep ? 'wake' : 'toggle')}
-      />
       {totals && totals.awakeMs > 0 && <RatioCard totals={totals} />}
+      {current.state === 'asleep' ? (
+        <button className="big" onClick={() => setConfirming('wake')}>
+          <Sun />
+          Réveil
+        </button>
+      ) : (
+        <StateControl
+          state={current.state}
+          inState={current.lastTap > 0 ? now - current.lastTap : 0}
+          onAsk={() => setConfirming('toggle')}
+        />
+      )}
       {day && day.tasks.length === 3 && <TaskList day={day} onSave={saveTasks} />}
-      {day && day.tasks.length === 0 && !asleep && <TaskForm onSave={saveTasks} />}
+      {day && day.tasks.length === 0 && current.state !== 'asleep' && <TaskForm onSave={saveTasks} />}
       {!asleep && (
         <button className="ghost" onClick={() => setConfirming('sleep')}>
-          <Moon size={16} />
-          Sleep
+          <Moon size={15} />
+          Dormir
         </button>
       )}
       {confirming && (
-        <ConfirmSheet
-          word={confirmWord}
-          typed={confirming === 'sleep'}
+        <Confirm
+          confirming={confirming}
+          state={current.state}
+          wakeNeedsTasks={!day || day.tasks.length === 0}
           onCancel={() => setConfirming(null)}
-          onConfirm={() => tap(confirming)}
+          onConfirm={(tasks) => tap(confirming, tasks)}
         />
       )}
     </main>

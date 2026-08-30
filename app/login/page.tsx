@@ -38,11 +38,11 @@ export default function Login() {
       <form className="card" onSubmit={submit}>
         <div className="row" style={{ justifyContent: 'center' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.svg" alt="my-signal" width={40} height={40} />
+          <img src="/logo.svg" alt="my-signal" width={56} height={56} />
         </div>
         <span className="label">
           <KeyRound size={14} />
-          Password
+          Mot de passe
         </span>
         <input
           type="password"
@@ -53,10 +53,10 @@ export default function Login() {
             setRefused(false)
           }}
         />
-        {refused && <span className="label">Wrong password</span>}
+        {refused && <span className="label">Refusé</span>}
         <button type="submit">
-          <LogIn size={16} />
-          Enter
+          <LogIn size={15} />
+          Entrer
         </button>
       </form>
       {phase !== 'off' && (

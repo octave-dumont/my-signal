@@ -1,29 +1,29 @@
 :root {
-  --ground: #f4f7f5;
-  --card: #fbfdfc;
-  --wash: #e9efeb;
-  --wash-press: #dde5e0;
-  --border: #dbe3de; /* rule 7 broken deliberately: on a light ground a lighter-than-both border is invisible */
-  --ink: #1a231e;
-  --ink-2: #5c6a62;
-  --accent: #047857;
-  --accent-wash: #dcefe6;
-  --accent-border: #b5dcc9;
+  --ground: #fafafa;
+  --card: #ffffff;
+  --ink: #17171a;
+  --ink-2: rgba(23, 23, 26, 0.55);
+  --hairline: rgba(23, 23, 26, 0.16);
+  --card-border: rgba(23, 23, 26, 0.09);
+  --fill-1: rgba(23, 23, 26, 0.04);
+  --fill-2: rgba(23, 23, 26, 0.07);
+  --fill-3: rgba(23, 23, 26, 0.11);
+  --card-shadow: 0 1px 3px rgba(23, 23, 26, 0.06);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ground: #0c1210;
-    --card: #121a16;
-    --wash: #1a241f;
-    --wash-press: #141c18;
-    --border: #24312a;
-    --ink: #e3eae5;
-    --ink-2: #8aa095;
-    --accent: #4ade80;
-    --accent-wash: #16281f;
-    --accent-border: #2b4a39;
+    --ground: #131316;
+    --card: #1b1b1f;
+    --ink: #f4f4f5;
+    --ink-2: rgba(244, 244, 245, 0.55);
+    --hairline: rgba(244, 244, 245, 0.16);
+    --card-border: rgba(244, 244, 245, 0.1);
+    --fill-1: rgba(244, 244, 245, 0.05);
+    --fill-2: rgba(244, 244, 245, 0.08);
+    --fill-3: rgba(244, 244, 245, 0.12);
+    --card-shadow: none;
   }
 }
 
@@ -36,9 +36,8 @@ body {
   margin: 0;
   background: var(--ground);
   color: var(--ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 16px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 main {
@@ -47,20 +46,20 @@ main {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  gap: 8px;
+  padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
 }
 
 .label {
   font-size: 13px;
   color: var(--ink-2);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
 .label svg {
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
 .figure {
@@ -71,14 +70,19 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
 button,
 .btn {
   font: inherit;
+  font-weight: 500;
   text-decoration: none;
   color: var(--ink);
-  background: var(--wash);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
   padding: 10px 20px;
   cursor: pointer;
   display: inline-flex;
@@ -91,19 +95,19 @@ button,
 
 button:hover,
 .btn:hover {
-  background: var(--wash-press);
+  background: var(--fill-1);
 }
 
 button:active,
 .btn:active {
-  background: var(--wash-press);
+  background: var(--fill-2);
   transform: scale(0.98);
 }
 
 button:focus-visible,
 input:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
@@ -115,27 +119,82 @@ button:disabled {
 
 .ghost {
   background: transparent;
+  border-color: transparent;
+  color: var(--ink-2);
+}
+
+.ghost:hover {
+  color: var(--ink);
 }
 
 .big {
-  flex: 1;
-  min-height: 40dvh;
-  border-radius: 12px;
+  min-height: 30dvh;
+  border-radius: 13px;
   font-size: 16px;
   flex-direction: column;
   gap: 10px;
-}
-
-.big.signal {
-  background: var(--accent-wash);
-  border-color: var(--accent-border);
-  color: var(--accent);
+  box-shadow: var(--card-shadow);
 }
 
 .big svg {
-  width: 28px;
-  height: 28px;
-  opacity: 0.85;
+  width: 26px;
+  height: 26px;
+}
+
+.seg {
+  position: relative;
+  display: flex;
+  background: var(--fill-2);
+  border: 1px solid var(--hairline);
+  border-radius: 13px;
+  padding: 4px;
+  min-height: 72px;
+}
+
+.seg .pane {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 9px;
+  box-shadow: var(--card-shadow);
+  transition: transform 150ms var(--ease);
+}
+
+.seg .pane[data-at='1'] {
+  transform: translateX(100%);
+}
+
+.seg button {
+  flex: 1;
+  background: none;
+  border: none;
+  min-height: 64px;
+  position: relative;
+  color: var(--ink-2);
+  font-weight: 500;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.seg button:hover,
+.seg button:active {
+  background: none;
+  transform: none;
+}
+
+.seg button[data-on='true'] {
+  color: var(--ink);
+}
+
+.seg .sub {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
 }
 
 input[type='text'],
@@ -143,8 +202,8 @@ input[type='password'] {
   font: inherit;
   color: var(--ink);
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
   padding: 10px 12px;
   width: 100%;
   min-height: 44px;
@@ -152,12 +211,13 @@ input[type='password'] {
 
 .card {
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 9px;
+  box-shadow: var(--card-shadow);
+  padding: 13px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .row {
@@ -172,16 +232,16 @@ input[type='password'] {
 
 .track {
   height: 6px;
-  border-radius: 4px;
-  background: var(--wash);
+  border-radius: 3px;
+  background: var(--fill-2);
   position: relative;
 }
 
 .track .fill {
   position: absolute;
   inset: 0 auto 0 0;
-  border-radius: 4px;
-  background: var(--accent);
+  border-radius: 3px;
+  background: var(--ink);
   transition: width 150ms var(--ease);
 }
 
@@ -200,17 +260,6 @@ input[type='password'] {
   font-variant-numeric: tabular-nums;
 }
 
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  border: 1px solid var(--ink-2);
-}
-
-.dot[data-done='true'] {
-  background: var(--ink-2);
-}
-
 .task {
   display: flex;
   align-items: center;
@@ -220,7 +269,7 @@ input[type='password'] {
 }
 
 .task input {
-  accent-color: var(--accent);
+  accent-color: var(--ink);
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -234,11 +283,12 @@ input[type='password'] {
 .overlay {
   position: fixed;
   inset: 0;
-  background: color-mix(in srgb, var(--ground) 75%, transparent);
+  background: rgba(23, 23, 26, 0.32);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  z-index: 10;
 }
 
 .overlay .card {
@@ -264,6 +314,7 @@ input[type='password'] {
   padding: 32px;
   text-align: center;
   line-height: 1.6;
+  z-index: 20;
   animation: fadein 400ms var(--ease);
   transition: opacity 400ms var(--ease);
 }
