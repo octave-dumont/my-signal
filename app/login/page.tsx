@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { LogIn } from 'lucide-react'
 
 export default function Login() {
   const router = useRouter()
@@ -29,16 +28,10 @@ export default function Login() {
 
   return (
     <main style={{ justifyContent: 'center' }}>
-      <form className="card" onSubmit={submit}>
-        <div className="row" style={{ justifyContent: 'center' }}>
-          <picture>
-            <source media="(prefers-color-scheme: dark)" srcSet="/logo-dark.png" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="my-signal" width={88} height={88} />
-          </picture>
-        </div>
-        <span className="label">let&apos;s get stuff done</span>
+      <form className="gate" onSubmit={submit}>
+        <span className="gate-title">get it done.</span>
         <input
+          className="gate-input"
           type="text"
           value={password}
           autoFocus
@@ -46,16 +39,14 @@ export default function Login() {
           autoCorrect="off"
           autoComplete="off"
           spellCheck={false}
+          enterKeyHint="go"
+          aria-label="Password"
           onChange={(e) => {
             setPassword(e.target.value)
             setRefused(false)
           }}
         />
         {refused && <span className="label">Wrong password</span>}
-        <button type="submit">
-          <LogIn size={15} />
-          Enter
-        </button>
       </form>
     </main>
   )
