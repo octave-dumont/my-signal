@@ -11,7 +11,6 @@ export async function POST(request: Request) {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 365,
     path: '/',
   })
   return Response.json({ ok: true, quote: process.env.LOGIN_QUOTE ?? '' })
