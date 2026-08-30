@@ -1,36 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# my-signal
 
-## Getting Started
+Signal-to-noise ratio of the day. Three tasks, a wake tap, a signal/noise toggle, a sleep tap. Signal = time on one of the three declared tasks; everything else awake is noise. Bar to beat: 80/20.
 
-First, run the development server:
+## Model
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- `day:<YYYY-MM-DD>` in Upstash Redis: `{date, events: [{t, type: wake|toggle|sleep}], tasks: [{text, done}] x3}`. A day is owned by its wake date, Europe/Paris.
+- `current`: `{dayKey, state: asleep|signal|noise, lastTap, nagged}`.
+- Ratio and legality live in `lib/day.ts` (`fold`, `nextState`), tested by `node --test lib/day.test.ts`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Routes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `POST /api/login` sets the auth cookie; every other route sits behind `proxy.ts` (password in `APP_PASSWORD`).
+- `GET /api/state`, `POST /api/tap {type}`, `POST /api/tasks {tasks x3}`, `GET /api/history`, `POST /api/push` (subscription), `POST /api/tick?key=TICK_KEY`.
+- Tick rule: awake and no tap for 2h, then a push "Still in signal|noise?", renagged every 2h. Schedule an Upstash QStash POST to `/api/tick?key=...` every 15 min (Vercel Hobby cron is daily-only).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy
 
-## Learn More
+1. Vercel project on this repo, env vars from `.env.example` (values in `.env.local`, never committed).
+2. Upstash Redis: claim or create, fill both `UPSTASH_*` vars.
+3. QStash schedule: `*/15 * * * *` POST `https://<app>/api/tick?key=<TICK_KEY>`.
+4. iPhone: open the site, Add to Home Screen, then tap the bell once (web push needs the installed app).
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Icons regenerate with `node scripts/icons.mjs` from `public/logo.svg`.
