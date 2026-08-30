@@ -86,10 +86,19 @@ export default function HistoryPage() {
   const [days, setDays] = useState<Summary[] | null>(null)
 
   useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem('ms_history')
+      if (cached) setDays(JSON.parse(cached))
+    } catch {}
     fetch('/api/history')
       .then((r) => r.json())
-      .then((data) => setDays(data.days))
-      .catch(() => setDays([]))
+      .then((data) => {
+        setDays(data.days)
+        try {
+          sessionStorage.setItem('ms_history', JSON.stringify(data.days))
+        } catch {}
+      })
+      .catch(() => setDays((d) => d ?? []))
   }, [])
 
   return (
@@ -100,7 +109,20 @@ export default function HistoryPage() {
         </Link>
       </div>
 
-      {days === null && <div className="card" style={{ minHeight: 120, opacity: 0.5 }} />}
+      {days === null && (
+        <>
+          <div className="row">
+            <div className="card skel" style={{ flex: 1, height: 78 }} />
+            <div className="card skel" style={{ flex: 1, height: 78 }} />
+            <div className="card skel" style={{ flex: 1, height: 78 }} />
+          </div>
+          <div className="card">
+            {Array.from({ length: 5 }, (_, i) => (
+              <div key={i} className="skel" style={{ height: 24, borderRadius: 6 }} />
+            ))}
+          </div>
+        </>
+      )}
 
       {days !== null && days.length === 0 && (
         <div className="card row" style={{ justifyContent: 'center', minHeight: 120 }}>

@@ -57,12 +57,13 @@ function RatioCard({ totals }: { totals: { signalMs: number; awakeMs: number; ra
   const grade = { color: `var(--g-${gradeOf(pct)})` }
   return (
     <div className="card">
-      <div className="row spread">
-        <span className="figure" style={grade}>
-          {pct}%
-        </span>
-        <span className="label">signal-to-noise</span>
-      </div>
+      <span className="label">
+        <WaveGlyph />
+        Signal-to-noise
+      </span>
+      <span className="figure" style={grade}>
+        {pct}%
+      </span>
       <div className="track" style={grade}>
         <div className="fill" style={{ width: `${Math.min(pct, 100)}%` }} />
         <div className="mark" style={{ left: `${TARGET}%` }} />
@@ -264,10 +265,25 @@ function useDay() {
     const data = await res.json()
     setCurrent(data.current)
     setDay(data.day)
+    try {
+      sessionStorage.setItem('ms_state', JSON.stringify(data))
+    } catch {}
   }, [])
 
   useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem('ms_state')
+      if (cached) {
+        const data = JSON.parse(cached)
+        setCurrent(data.current)
+        setDay(data.day)
+      }
+    } catch {}
     refresh()
+    fetch('/api/history')
+      .then((r) => r.json())
+      .then((data) => sessionStorage.setItem('ms_history', JSON.stringify(data.days)))
+      .catch(() => {})
     const t = setInterval(() => setNow(Date.now()), 5000)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
@@ -324,7 +340,13 @@ export default function Today() {
   if (!current) {
     return (
       <main>
-        <div className="card" style={{ flex: 1, opacity: 0.5 }} />
+        <div className="row spread" style={{ minHeight: 44 }}>
+          <div className="skel" style={{ width: 36, height: 36, borderRadius: 10 }} />
+          <div className="skel" style={{ width: 120, height: 32, borderRadius: 999 }} />
+        </div>
+        <div className="card skel" style={{ height: 150 }} />
+        <div className="skel" style={{ flex: 1, borderRadius: 20 }} />
+        <div className="card skel" style={{ height: 170 }} />
       </main>
     )
   }
