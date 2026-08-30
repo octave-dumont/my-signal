@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { KeyRound, LogIn } from 'lucide-react'
+import { LogIn } from 'lucide-react'
 
 export default function Login() {
   const router = useRouter()
@@ -37,14 +37,15 @@ export default function Login() {
             <img src="/logo.png" alt="my-signal" width={88} height={88} />
           </picture>
         </div>
-        <span className="label">
-          <KeyRound size={14} />
-          Password
-        </span>
+        <span className="label">let&apos;s get stuff done</span>
         <input
-          type="password"
+          type="text"
           value={password}
           autoFocus
+          autoCapitalize="none"
+          autoCorrect="off"
+          autoComplete="off"
+          spellCheck={false}
           onChange={(e) => {
             setPassword(e.target.value)
             setRefused(false)

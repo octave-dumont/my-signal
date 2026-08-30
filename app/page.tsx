@@ -220,8 +220,8 @@ function LoginQuote() {
     } catch {}
     if (!q) return
     setQuote(q)
-    const t1 = setTimeout(() => setGone(true), 3600)
-    const t2 = setTimeout(() => setQuote(null), 4200)
+    const t1 = setTimeout(() => setGone(true), 5200)
+    const t2 = setTimeout(() => setQuote(null), 5800)
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
