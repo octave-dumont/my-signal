@@ -24,6 +24,8 @@ export default function Login() {
     const data = await res.json()
     try {
       if (data.quote) sessionStorage.setItem('ms_quote', data.quote)
+      const state = await fetch('/api/state')
+      if (state.ok) localStorage.setItem('ms_state', JSON.stringify(await state.json()))
     } catch {}
     window.location.replace('/')
   }

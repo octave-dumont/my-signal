@@ -5,14 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { AudioWaveform, Bell, BellRing, Check, ChevronRight, History, Moon, Sun, Waves } from 'lucide-react'
 import { dayKey, fold, gradeOf, nextState, TARGET, type Day, type State, type TapType } from '@/lib/day'
 import type { Current } from '@/lib/store'
-
-const PHRASE = "we're doing it"
-const PHRASES = ["we're doing it", 'we are doing it']
-
-// iOS curls apostrophes and people expand contractions: normalize before matching.
-function normPhrase(s: string) {
-  return s.toLowerCase().replace(/[‘’‛′´`ʼ]/g, "'").replace(/\s+/g, ' ').trim()
-}
+import { PHRASE, phraseOk } from '@/lib/phrase'
 
 function fmt(ms: number) {
   const m = Math.floor(ms / 60000)
@@ -144,7 +137,7 @@ function ConfirmSheet(props: {
 }) {
   const [phrase, setPhrase] = useState('')
   const [drafts, setDrafts] = useState(['', '', ''])
-  const blocked = (props.typed && !PHRASES.includes(normPhrase(phrase))) || (props.tasks && drafts.some((d) => !d.trim()))
+  const blocked = (props.typed && !phraseOk(phrase)) || (props.tasks && drafts.some((d) => !d.trim()))
   return (
     <div className="overlay" onClick={props.onCancel}>
       <form
@@ -277,13 +270,13 @@ function useDay() {
     setCurrent(data.current)
     setDay(data.day)
     try {
-      sessionStorage.setItem('ms_state', JSON.stringify(data))
+      localStorage.setItem('ms_state', JSON.stringify(data))
     } catch {}
   }, [])
 
   useEffect(() => {
     try {
-      const cached = sessionStorage.getItem('ms_state')
+      const cached = localStorage.getItem('ms_state')
       if (cached) {
         const data = JSON.parse(cached)
         setCurrent(data.current)
@@ -293,7 +286,7 @@ function useDay() {
     refresh()
     fetch('/api/history')
       .then((r) => r.json())
-      .then((data) => sessionStorage.setItem('ms_history', JSON.stringify(data.days)))
+      .then((data) => localStorage.setItem('ms_history', JSON.stringify(data.days)))
       .catch(() => {})
     const t = setInterval(() => setNow(Date.now()), 5000)
     if ('serviceWorker' in navigator) {
@@ -322,8 +315,8 @@ function useDay() {
     await post('/api/tap', { type })
     if (type === 'sleep') {
       try {
-        sessionStorage.removeItem('ms_state')
-        sessionStorage.removeItem('ms_history')
+        localStorage.removeItem('ms_state')
+        localStorage.removeItem('ms_history')
       } catch {}
       window.location.replace('/login')
       return

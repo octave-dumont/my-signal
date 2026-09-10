@@ -87,7 +87,7 @@ export default function HistoryPage() {
 
   useEffect(() => {
     try {
-      const cached = sessionStorage.getItem('ms_history')
+      const cached = localStorage.getItem('ms_history')
       if (cached) setDays(JSON.parse(cached))
     } catch {}
     fetch('/api/history')
@@ -95,7 +95,7 @@ export default function HistoryPage() {
       .then((data) => {
         setDays(data.days)
         try {
-          sessionStorage.setItem('ms_history', JSON.stringify(data.days))
+          localStorage.setItem('ms_history', JSON.stringify(data.days))
         } catch {}
       })
       .catch(() => setDays((d) => d ?? []))
