@@ -23,6 +23,7 @@ export default function Login() {
     }
     const data = await res.json()
     try {
+      sessionStorage.setItem('ms_in', '1')
       if (data.quote) sessionStorage.setItem('ms_quote', data.quote)
       const state = await fetch('/api/state')
       if (state.ok) localStorage.setItem('ms_state', JSON.stringify(await state.json()))

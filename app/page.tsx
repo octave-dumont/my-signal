@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { AudioWaveform, Bell, BellRing, Check, ChevronRight, History, Moon, Sun, Waves } from 'lucide-react'
-import { dayKey, fold, gradeOf, nextState, TARGET, type Day, type State, type TapType } from '@/lib/day'
+import { dayKey, fold, gradeOf, nextState, TARGET, type Day, type TapType } from '@/lib/day'
 import type { Current } from '@/lib/store'
-import { PHRASE, phraseOk } from '@/lib/phrase'
+import { Confirm } from './confirm'
 
 function fmt(ms: number) {
   const m = Math.floor(ms / 60000)
@@ -127,87 +127,6 @@ function TaskList({ day, onSave }: { day: Day; onSave: (tasks: Day['tasks']) => 
   )
 }
 
-function ConfirmSheet(props: {
-  word: string
-  icon: React.ReactNode
-  typed?: boolean
-  tasks?: boolean
-  onCancel: () => void
-  onConfirm: (tasks?: string[]) => void
-}) {
-  const [phrase, setPhrase] = useState('')
-  const [drafts, setDrafts] = useState(['', '', ''])
-  const blocked = (props.typed && !phraseOk(phrase)) || (props.tasks && drafts.some((d) => !d.trim()))
-  return (
-    <div className="overlay" onClick={props.onCancel}>
-      <form
-        className="card"
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={(e) => {
-          e.preventDefault()
-          props.onConfirm(props.tasks ? drafts.map((d) => d.trim()) : undefined)
-        }}
-      >
-        <span className="row" style={{ justifyContent: 'center', gap: 8, fontWeight: 500 }}>
-          {props.icon}
-          {props.word}
-        </span>
-        {props.tasks &&
-          drafts.map((d, i) => (
-            <input
-              key={i}
-              type="text"
-              value={d}
-              autoFocus={i === 0}
-              placeholder={`Task ${i + 1}`}
-              onChange={(e) => setDrafts(drafts.map((x, j) => (j === i ? e.target.value : x)))}
-            />
-          ))}
-        {props.typed && (
-          <>
-            <span className="label" style={{ justifyContent: 'center' }}>
-              write &quot;{PHRASE}&quot; to go to sleep
-            </span>
-            <input type="text" value={phrase} autoFocus autoCapitalize="none" autoCorrect="off" spellCheck={false} onChange={(e) => setPhrase(e.target.value)} />
-          </>
-        )}
-        <div className="row">
-          <button type="button" className="ghost" style={{ flex: 1 }} onClick={props.onCancel}>
-            Cancel
-          </button>
-          <button type="submit" style={{ flex: 1 }} autoFocus={!props.typed && !props.tasks} disabled={blocked}>
-            <Check size={15} />
-            Confirm
-          </button>
-        </div>
-      </form>
-    </div>
-  )
-}
-
-function Confirm(props: {
-  confirming: TapType
-  state: State
-  wakeNeedsTasks: boolean
-  onCancel: () => void
-  onConfirm: (tasks?: string[]) => void
-}) {
-  if (props.confirming === 'wake') {
-    return <ConfirmSheet word="Wake up" icon={<Sun size={17} />} tasks={props.wakeNeedsTasks} {...props} />
-  }
-  if (props.confirming === 'sleep') {
-    return <ConfirmSheet word="Sleep" icon={<Moon size={17} />} typed {...props} />
-  }
-  const toSignal = props.state === 'noise'
-  return (
-    <ConfirmSheet
-      word={toSignal ? 'Signal' : 'Noise'}
-      icon={toSignal ? <AudioWaveform size={17} /> : <Waves size={17} />}
-      {...props}
-    />
-  )
-}
-
 const useBeforePaint = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 function TodaySkeleton() {
@@ -265,6 +184,7 @@ function useDay() {
 
   const refresh = useCallback(async () => {
     const res = await fetch('/api/state')
+    if (res.status === 401) return window.location.replace('/login')
     if (!res.ok) return
     const data = await res.json()
     setCurrent(data.current)
@@ -274,8 +194,10 @@ function useDay() {
     } catch {}
   }, [])
 
-  useEffect(() => {
+  // The shell comes from the service worker cache, so the session marker decides before paint.
+  useBeforePaint(() => {
     try {
+      if (!sessionStorage.getItem('ms_in')) return window.location.replace('/login')
       const cached = localStorage.getItem('ms_state')
       if (cached) {
         const data = JSON.parse(cached)
@@ -283,6 +205,9 @@ function useDay() {
         setDay(data.day)
       }
     } catch {}
+  }, [])
+
+  useEffect(() => {
     refresh()
     fetch('/api/history')
       .then((r) => r.json())
@@ -317,6 +242,7 @@ function useDay() {
       try {
         localStorage.removeItem('ms_state')
         localStorage.removeItem('ms_history')
+        sessionStorage.removeItem('ms_in')
       } catch {}
       window.location.replace('/login')
       return

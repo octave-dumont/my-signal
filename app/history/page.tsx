@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { CalendarOff, ChevronLeft, Flame, ListChecks } from 'lucide-react'
 import { gradeOf, TARGET } from '@/lib/day'
 
@@ -85,11 +85,14 @@ function Stats({ days }: { days: Summary[] }) {
 export default function HistoryPage() {
   const [days, setDays] = useState<Summary[] | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     try {
       const cached = localStorage.getItem('ms_history')
       if (cached) setDays(JSON.parse(cached))
     } catch {}
+  }, [])
+
+  useEffect(() => {
     fetch('/api/history')
       .then((r) => r.json())
       .then((data) => {
